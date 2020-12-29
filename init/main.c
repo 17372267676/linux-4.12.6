@@ -397,9 +397,9 @@ static noinline void __ref rest_init(void)
 	 * the init task will end up wanting to create kthreads, which, if
 	 * we schedule it before we create kthreadd, will OOPS.
 	 */
-	kernel_thread(kernel_init, NULL, CLONE_FS);
+	kernel_thread(kernel_init, NULL, CLONE_FS);/* jam 创建线程1，init线程，线程函数是kernel_init */
 	numa_default_policy();
-	pid = kernel_thread(kthreadd, NULL, CLONE_FS | CLONE_FILES);
+	pid = kernel_thread(kthreadd, NULL, CLONE_FS | CLONE_FILES);/* jam 创建线程2，kthreadd线程，负责创建内核线程 */
 	rcu_read_lock();
 	kthreadd_task = find_task_by_pid_ns(pid, &init_pid_ns);
 	rcu_read_unlock();
@@ -491,7 +491,7 @@ asmlinkage __visible void __init start_kernel(void)
 	char *after_dashes;
 
 	set_task_stack_end_magic(&init_task);
-	smp_setup_processor_id();
+	smp_setup_processor_id();/*jam 获取当前正在执行初始化的处理器ID*/
 	debug_objects_early_init();
 
 	/*
@@ -509,9 +509,9 @@ asmlinkage __visible void __init start_kernel(void)
 	 * enable them.
 	 */
 	boot_cpu_init();
-	page_address_init();
-	pr_notice("%s", linux_banner);
-	setup_arch(&command_line);
+	page_address_init(); /* jam 初始化高端内存的映射表，在arm64中可能不需要 */
+	pr_notice("%s", linux_banner); /*jam 打印版本信息、编译的电脑用户名称、编译器版本、编译时间*/
+	setup_arch(&command_line);/*jam 对内核架构进行初始化*/
 	mm_init_cpumask(&init_mm);
 	setup_command_line(command_line);
 	setup_nr_cpu_ids();
@@ -543,7 +543,7 @@ asmlinkage __visible void __init start_kernel(void)
 	vfs_caches_init_early();
 	sort_main_extable();
 	trap_init();
-	mm_init();
+	mm_init(); /*jam 这个函数是标记那些内存可以使用，并且告诉系统有多少内存可以使用，当然是除了内核使用的内存以外*/
 
 	ftrace_init();
 
@@ -676,7 +676,7 @@ asmlinkage __visible void __init start_kernel(void)
 	}
 
 	/* Do the rest non-__init'ed, we're now alive */
-	rest_init();
+	rest_init(); /* jam 后继初始化，主要是创建内核线程init，并运行 */
 }
 
 /* Call all constructor functions linked into the kernel. */
@@ -959,7 +959,7 @@ static int __ref kernel_init(void *unused)
 {
 	int ret;
 
-	kernel_init_freeable();
+	kernel_init_freeable();/* kernel_init_freeable主要功能是，等待内核线程创建完wait_for_completion(&kthreadd_done)、注册内核驱动模块 */
 	/* need to finish all async __init code before freeing the memory */
 	async_synchronize_full();
 	ftrace_free_init_mem();

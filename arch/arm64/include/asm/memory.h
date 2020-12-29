@@ -65,7 +65,7 @@
  */
 #define VA_BITS			(CONFIG_ARM64_VA_BITS)
 #define VA_START		(UL(0xffffffffffffffff) << VA_BITS)
-#define PAGE_OFFSET		(UL(0xffffffffffffffff) << (VA_BITS - 1))
+#define PAGE_OFFSET		(UL(0xffffffffffffffff) << (VA_BITS - 1)) /*jam 内核空间的开始虚拟地址，如果VA_BITS=39 此时PAGE_OFFSET=0xffff-ff800-0000-0000 ，内核空间范围：0xffff-ff800-0000-0000—0xffff-ffff-ffff-ffff，高512G*/
 #define KIMAGE_VADDR		(MODULES_END)
 #define MODULES_END		(MODULES_VADDR + MODULES_VSIZE)
 #define MODULES_VADDR		(VA_START + KASAN_SHADOW_SIZE)
@@ -138,7 +138,7 @@
 
 extern s64			memstart_addr;
 /* PHYS_OFFSET - the physical address of the start of memory. */
-#define PHYS_OFFSET		({ VM_BUG_ON(memstart_addr & 1); memstart_addr; })
+#define PHYS_OFFSET		({ VM_BUG_ON(memstart_addr & 1); memstart_addr; })/* jam 系统起始物理地址(偏移TEXT_OFFSET存放内核),在系统初始化的过程中，会把PHYS_OFFSET开始的物理内存映射到PAGE_OFFSET的虚拟内存上去 */
 
 /* the virtual base of the kernel image (minus TEXT_OFFSET) */
 extern u64			kimage_vaddr;
